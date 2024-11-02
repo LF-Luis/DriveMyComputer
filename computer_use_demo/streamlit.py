@@ -12,6 +12,7 @@ from enum import StrEnum
 from functools import partial
 from pathlib import PosixPath
 from typing import cast
+import pyttsx3 
 
 import httpx
 import streamlit as st
@@ -28,6 +29,9 @@ from computer_use_demo.loop import (
     sampling_loop,
 )
 from computer_use_demo.tools import ToolResult
+
+tts_engine = pyttsx3.init()
+tts_engine.setProperty('rate', 150)
 
 CONFIG_DIR = PosixPath("~/.anthropic").expanduser()
 API_KEY_FILE = CONFIG_DIR / "api_key"
@@ -53,6 +57,10 @@ class Sender(StrEnum):
     BOT = "assistant"
     TOOL = "tool"
 
+def speak(text: str):
+    """Use pyttsx3 to speak the given text."""
+    tts_engine.say(text)
+    tts_engine.runAndWait()
 
 def setup_state():
     if "messages" not in st.session_state:
@@ -363,6 +371,7 @@ def _render_message(
         and not hasattr(message, "output")
     ):
         return
+    
     with st.chat_message(sender):
         if is_tool_result:
             message = cast(ToolResult, message)
@@ -371,20 +380,21 @@ def _render_message(
                     st.code(message.output)
                 else:
                     st.markdown(message.output)
+                    speak(message.output)  # add TTS for text output
             if message.error:
                 st.error(message.error)
+                speak(message.error)  # add TTS for error messages
             if message.base64_image and not st.session_state.hide_images:
                 st.image(base64.b64decode(message.base64_image))
         elif isinstance(message, dict):
             if message["type"] == "text":
                 st.write(message["text"])
+                speak(message["text"])  # add TTS for text messages
             elif message["type"] == "tool_use":
                 st.code(f'Tool Use: {message["name"]}\nInput: {message["input"]}')
-            else:
-                # only expected return types are text and tool_use
-                raise Exception(f'Unexpected response type {message["type"]}')
         else:
             st.markdown(message)
+            speak(message)  # add TTS for plain markdown messages
 
 
 if __name__ == "__main__":
