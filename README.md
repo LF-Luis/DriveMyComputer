@@ -196,7 +196,10 @@ docker run \
     -it computer-use-demo:local  # can also use ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
 ```
 
-## View Application Logs
+## View Application Logs (auto)
+Run `./run_logs.sh` after starting a new Docker app and them the logs will be streamed to a log file under `temp_folder` dir.
+
+## View Application Logs (manual)
 From Terminal that launched docker app, run:
 
 1. Find docker image ID
