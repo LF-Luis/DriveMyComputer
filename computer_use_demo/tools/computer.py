@@ -3,6 +3,7 @@ import base64
 import os
 import shlex
 import shutil
+import pyttsx3
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -92,6 +93,8 @@ class ComputerTool(BaseAnthropicTool):
 
     def __init__(self):
         super().__init__()
+        self.tts_engine = pyttsx3.init()
+        self.tts_engine.setProperty('rate', 150)  # adjust speed
 
         self.width = int(os.getenv("WIDTH") or 0)
         self.height = int(os.getenv("HEIGHT") or 0)
@@ -258,3 +261,8 @@ class ComputerTool(BaseAnthropicTool):
             return round(x / x_scaling_factor), round(y / y_scaling_factor)
         # scale down
         return round(x * x_scaling_factor), round(y * y_scaling_factor)
+
+    def speak(self, text: str):
+        """speak the given text."""
+        self.tts_engine.say(text)
+        self.tts_engine.runAndWait()
