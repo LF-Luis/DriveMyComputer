@@ -80,6 +80,9 @@ async def sampling_loop(
         # BashTool(),
         # EditTool(),
     )
+
+    computer_tool = tool_collection.tools["computer"]
+
     system = BetaTextBlockParam(
         type="text",
         text=f"{SYSTEM_PROMPT.system_prompt()}{' ' + system_prompt_suffix if system_prompt_suffix else ''}",
@@ -136,6 +139,11 @@ async def sampling_loop(
                 only_n_most_recent_images,
                 min_removal_threshold=image_truncation_threshold,
             )
+
+        # check for "click" or "mouse_move" in the latest message to trigger cursor highlighting
+        last_message = messages[-1]["content"][0]["text"].lower()
+        if "click" in last_message or "mouse_move" in last_message:
+            await computer_tool.flash_cursor_highlight(duration=0.5)
 
         print('LF_DEBUG: In the loop')
         print('LF_DEBUG: Hello!')
