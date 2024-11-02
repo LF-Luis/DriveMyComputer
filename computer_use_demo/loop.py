@@ -41,11 +41,7 @@ from .prompts import COT_PROMPTS
 COMPUTER_USE_BETA_FLAG = "computer-use-2024-10-22"
 PROMPT_CACHING_BETA_FLAG = "prompt-caching-2024-07-31"
 
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class APIProvider(StrEnum):
@@ -142,7 +138,8 @@ async def sampling_loop(
             )
 
         print('LF_DEBUG: In the loop')
-        logging.info('LF_DEBUG: In the loop')
+        print('LF_DEBUG: Hello!')
+        
 
 
         # Call the API
