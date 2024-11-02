@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "starting vnc"
+echo "Starting x11vnc with remote control enabled"
 
 (x11vnc -display $DISPLAY \
     -forever \
@@ -7,6 +7,7 @@ echo "starting vnc"
     -wait 50 \
     -rfbport 5900 \
     -nopw \
+    -rc local:/tmp/x11vnc.sock \  # Enable remote control socket
     2>/tmp/x11vnc_stderr.log) &
 
 x11vnc_pid=$!

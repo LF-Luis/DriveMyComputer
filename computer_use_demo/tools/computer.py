@@ -92,6 +92,8 @@ class ComputerTool(BaseAnthropicTool):
 
     def __init__(self):
         super().__init__()
+        self.highlight_enabled = False
+        self.rc_socket = Path("/tmp/x11vnc.sock")
 
         self.width = int(os.getenv("WIDTH") or 0)
         self.height = int(os.getenv("HEIGHT") or 0)
@@ -258,3 +260,33 @@ class ComputerTool(BaseAnthropicTool):
             return round(x / x_scaling_factor), round(y / y_scaling_factor)
         # scale down
         return round(x * x_scaling_factor), round(y * y_scaling_factor)
+
+    async def set_vnc_cursor_highlight(self, enabled: bool):
+        """Enable or disable VNC cursor highlight using x11vnc remote control."""
+        if not self.rc_socket.exists():
+            print("x11vnc remote control socket not found")
+            return
+
+        try:
+            # toggle the cursor highlight with x11vnc parameters
+            cursor_params = "-cursor some -spotrect 32 -spotcolor yellow" if enabled else "-cursor none"
+            control_cmd = f"set {cursor_params}\n"
+            
+            # send command to x11vnc remote control socket
+            async with asyncio.open_unix_connection(str(self.rc_socket)) as (reader, writer):
+                writer.write(control_cmd.encode())
+                await writer.drain()
+                
+            self.highlight_enabled = enabled
+            print(f"VNC cursor highlight {'enabled' if enabled else 'disabled'}")
+            
+        except ConnectionRefusedError:
+            print("Could not connect to x11vnc remote control socket")
+        except Exception as e:
+            print(f"Failed to modify VNC cursor: {e}")
+
+    async def flash_cursor_highlight(self, duration: float = 0.5):
+        """Flash the VNC cursor highlight for a brief duration."""
+        await self.set_vnc_cursor_highlight(True)  # enable highlight
+        await asyncio.sleep(duration)  # keep it on for a short time
+        await self.set_vnc_cursor_highlight(False)  # disable highlight
