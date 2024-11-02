@@ -85,44 +85,12 @@ async def sampling_loop(
         text=f"{SYSTEM_PROMPT.system_prompt()}{' ' + system_prompt_suffix if system_prompt_suffix else ''}",
     )
 
-    '''
-    # Take the User's request
-    user_message = messages[-1]
-    user_message = user_message['content'][0]['text']
-
-    # Create planning prompt
-    augmented_prompt = COT_PROMPTS.planning_prompt(user_task=user_message)
-
-    # Create a new message with the augmented prompt
-    augmented_message = {
-        'role': 'user',
-        'content': [BetaTextBlockParam(type='text', text=augmented_prompt)],
-    }
-
-    # Create a copy of messages to avoid modifying the original conversation
-    steps_messages = messages[:-1] + [augmented_message]
-
-    # Initialize client
-    if provider == APIProvider.ANTHROPIC:
-        client = Anthropic(api_key=api_key)
-    elif provider == APIProvider.VERTEX:
-        client = AnthropicVertex()
-    elif provider == APIProvider.BEDROCK:
-        client = AnthropicBedrock()
-    '''
-
-    while True:
-        enable_prompt_caching = False
+    while True: 
         betas = [COMPUTER_USE_BETA_FLAG]
         image_truncation_threshold = 10
-        if provider == APIProvider.ANTHROPIC:
-            client = Anthropic(api_key=api_key)
-            enable_prompt_caching = True
-        elif provider == APIProvider.VERTEX:
-            client = AnthropicVertex()
-        elif provider == APIProvider.BEDROCK:
-            client = AnthropicBedrock()
-
+        client = Anthropic(api_key=api_key)
+        enable_prompt_caching = True
+        
         if enable_prompt_caching:
             betas.append(PROMPT_CACHING_BETA_FLAG)
             _inject_prompt_caching(messages)
@@ -137,15 +105,19 @@ async def sampling_loop(
                 min_removal_threshold=image_truncation_threshold,
             )
 
-        print('LF_DEBUG: In the loop')
-        print('LF_DEBUG: Hello!')
+        # Augment user request with Planning Prompt #
+
+        # print(f'LF_DEBUG: actual API messages: \n{messages}')
+        # print(f'LF_DEBUG: actual API messages last: \n{messages[-1]}')
+
+        print(f'LF_DEBUG: full messages: \n{messages}')
+
+        # current_request_text = messages[-1]["content"][-1]["text"]
+        # full_planning_prompt = COT_PROMPTS.planning_prompt(user_task=current_request_text)
+        # messages[-1]["content"][-1]["text"] = full_planning_prompt
         
+        print(f'LF_DEBUG: Updated last User request: \n{messages[-1]}')
 
-
-        # Call the API
-        # we use raw_response to provide debug information to streamlit. Your
-        # implementation may be able call the SDK directly with:
-        # `response = client.messages.create(...)` instead.
         try:
             raw_response = client.beta.messages.with_raw_response.create(
                 max_tokens=max_tokens,
@@ -193,6 +165,7 @@ async def sampling_loop(
             return messages
 
         messages.append({"content": tool_result_content, "role": "user"})
+
 
 
 def _maybe_filter_to_n_most_recent_images(

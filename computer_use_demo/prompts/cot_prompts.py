@@ -3,8 +3,17 @@
 class COT_PROMPTS:
 
     @classmethod
-    def planning_prompt(cls, user_task: str):
+    def planning_prompt_old(cls, user_task: str):
         return f'''Using what is currently on the screen, come up with at most 5 steps to perform the following task. The less number of steps the better, but make sure each step has sufficient details to accomplish it. Do not actually perform the task, just list the steps.
+
+<task>
+{user_task}
+</task>
+'''
+    
+    @classmethod
+    def planning_prompt(cls, user_task: str):
+        return f'''Using the type of site that is currently on the screen, come up with at most 5 steps to perform the following task. The less number of steps the better, but make sure each step has sufficient details to accomplish it. Do not actually perform the task, just list the steps.
 
 <task>
 {user_task}
